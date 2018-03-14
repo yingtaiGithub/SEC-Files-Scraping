@@ -1,8 +1,7 @@
 import sys
 import os
-import re
+import time
 import logging
-import csv
 
 import pandas as pd
 
@@ -14,7 +13,8 @@ def split(input_directory, fname, output_directory):
     with open(os.path.join(input_directory, fname)) as f:
         raw_text = f.read()
 
-    split_texts = re.findall("<DOCUMENT>.+?<TYPE>EX-10.+?</DOCUMENT>", raw_text, flags=re.S)
+    # split_texts = re.findall("<DOCUMENT>.+?<TYPE>EX-10.+?</DOCUMENT>", raw_text, flags=re.S)
+    split_texts = utility.get_parts(raw_text)
     for index, split_text in enumerate(split_texts):
         file_path = os.path.join(output_directory, fname[:-4] + "." + str(index+1) + ".txt")
         if not os.path.exists(os.path.dirname(file_path)):
@@ -30,33 +30,47 @@ def split(input_directory, fname, output_directory):
         yield [str(index+1)] + readability + [notable_words_count, words_count] + [file_path]
 
 def main():
-    df = pd.read_csv(input_csv)
-    print (df.columns)
-    logger.info("All input entries: %s" %len(df))
+    input_df = pd.read_csv(input_csv)
+    logger.info("All input entries: %s" %len(input_df))
 
-    new_df = pd.DataFrame(columns=config.outputCsv_columns)
-    new_index = 0
-    for index, row in df.iterrows():
-        existing_values = [row.cik, row.coname, row.form, row.fdate, row.fname]
+    if os.path.exists(output_csv):
+        existing_df = pd.read_csv(output_csv)
+        scanned_fnames = list(set(existing_df['filename']))
+    else:
+        utility.create_csv(output_csv, config.outputCsv_columns)
+        scanned_fnames = []
+
+    unscanned_entires_count = len(input_df)-len(scanned_fnames)
+    logger.info("Scanned entries Count: %s"% len(scanned_fnames))
+    logger.info("Unscanned entries Count: %s" %unscanned_entires_count)
+    time.sleep(5)
+
+    unscanned_df = input_df[~input_df.fname.isin(scanned_fnames)]
+    unscanned_df = unscanned_df.reset_index()
+    for index, row in unscanned_df.iterrows():
         fname = row.fname
+        existing_values = [row.cik, row.coname, row.form, row.fdate, row.fname]
+
+        logger.info("Processing: %s/%s - %s" %(index+1, unscanned_entires_count, fname))
+
         if os.path.exists(os.path.join(input_directory, fname)):
-            print (fname)
             readability_wordscount = list(split(input_directory, fname, output_directory))
+
             if readability_wordscount:
                 new_rows = [existing_values + ['success'] + item for item in readability_wordscount]
 
-        #     else:
-        #         # new_rows = [existing_values + ["Fail"] + ['']* 13]
-        #         new_rows = []
-        # else:
-        #     # new_rows = [existing_values + ["Fail"] + ['']* 13]
-        #     new_rows = []
+            else:
+                new_rows = [existing_values + ["Fail"] + ['']* 13]
 
-                for new_row in new_rows:
-                    new_df.loc[new_index] = new_row
-                    new_index += 1
+        else:
+            new_rows = [existing_values + ["No source file"] + ['']* 13]
 
-    new_df.to_csv(output_csv)
+        utility.add_rows(output_csv, new_rows)
+                # for new_row in new_rows:
+                #     new_df.loc[new_index] = new_row
+                #     new_index += 1
+
+    # new_df.to_csv(output_csv)
 
 
 if __name__ == "__main__":
@@ -80,9 +94,7 @@ if __name__ == "__main__":
         output_csv = sys.argv[4]
 
         main()
-
     else:
-        print ('else')
         raise Exception("Unknown command")
 
 

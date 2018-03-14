@@ -3,3 +3,5 @@
 requirements/
 input/
 output/
+*.zip
+log/

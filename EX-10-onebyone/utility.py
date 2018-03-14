@@ -178,6 +178,16 @@ def get_readability(contents):
 
     return readability
 
+def create_csv(filename, columns):
+    with open(filename, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(columns)
+
+def add_rows(filename, rows):
+    with open(filename, 'a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerows(rows)
+
 # text = "aaaa\n<Table \n aaaa \n </Table>\ncde\n<TABLE>\needdddd\n</TABLE>\nccccc"
 # print (text)
 # print (len(text.split()))
