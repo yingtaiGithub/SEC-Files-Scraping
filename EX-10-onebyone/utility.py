@@ -183,6 +183,11 @@ def create_csv(filename, columns):
         writer = csv.writer(f)
         writer.writerow(columns)
 
+def add_row(filename, row):
+    with open(filename, 'a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(row)
+
 def add_rows(filename, rows):
     with open(filename, 'a', newline='') as f:
         writer = csv.writer(f)
