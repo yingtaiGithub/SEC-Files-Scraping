@@ -10,7 +10,8 @@ import config
 
 
 def split(input_directory, fname, output_directory):
-    with open(os.path.join(input_directory, fname)) as f:
+    print ('a')
+    with open(os.path.join(input_directory, fname), encoding='utf-8') as f:
         raw_text = f.read()
 
     # split_texts = re.findall("<DOCUMENT>.+?<TYPE>EX-10.+?</DOCUMENT>", raw_text, flags=re.S)
@@ -20,7 +21,7 @@ def split(input_directory, fname, output_directory):
         if not os.path.exists(os.path.dirname(file_path)):
             os.makedirs(os.path.dirname(file_path))
 
-        with open(file_path, 'w') as f:
+        with open(file_path, 'w', encoding='utf=8') as f:
             f.write(split_text)
 
         notable_words_count = len(utility.remove_tables(split_text).split(' '))

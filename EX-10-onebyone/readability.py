@@ -33,19 +33,18 @@ def main():
         location = row.location
         logger.info("Processing: %s/%s - %s" %(index+1, unscanned_entires_count, location))
 
-        existing_value = list(row)
+        existing_value = list(row)[1:]
 
-        if (row.location):
-            if os.path.exists(os.path.join(location)):
+        if (location):
+            # if os.path.exists(location):
+            with open(location) as f:
+                raw_text = f.read()
 
-                with open(location) as f:
-                    raw_text = f.read()
-
-                no_html = utility.remove_htmlTags(raw_text)
-                readability = utility.get_readability(no_html)
-                new_row = existing_value + readability
-            else:
-                new_row = existing_value + ['']* 10
+            no_html = utility.remove_htmlTags(raw_text)
+            readability = utility.get_readability(no_html)
+            new_row = existing_value + readability
+            # else:
+            #     new_row = existing_value + ['']* 10
         else:
             new_row = existing_value + ['']* 10
 
@@ -66,10 +65,9 @@ if __name__ == "__main__":
     logger.info("==================================")
     logger.info('start')
 
-    if len(sys.argv) == 4:
+    if len(sys.argv) == 3:
         input_csv = sys.argv[1]
-        input_directory = sys.argv[2]
-        output_csv = sys.argv[3]
+        output_csv = sys.argv[2]
 
         main()
     else:
